@@ -30,7 +30,7 @@ Using Bitcointalk BBCode Extension is simple:
 
 We welcome your feedback and suggestions. If you encounter any issues or have ideas for improving the extension, please [create an issue](#) on our GitHub repository.
 
-For questions, concerns, or more information about our privacy practices, you can contact us at [[shahzadafzal](https://bitcointalk.org/index.php?action=profile;u=1634314).
+For questions, concerns, or more information about our privacy practices, you can contact us at [shahzadafzal](https://bitcointalk.org/index.php?action=profile;u=1634314).
 
 ## License
 
