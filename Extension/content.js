@@ -16,6 +16,12 @@
     }
   }
 
+  function applyTargetPageStyles() {
+    if (window.BBCodePageStyleUtils && window.BBCodePageStyleUtils.injectBoldTitleStyle) {
+      window.BBCodePageStyleUtils.injectBoldTitleStyle(document);
+    }
+  }
+
   function isTextarea(element) {
     return Boolean(element && element.tagName && element.tagName.toLowerCase() === "textarea");
   }
@@ -82,18 +88,62 @@
     emitInput(textarea);
   }
 
+  function findNearestSizeWrapper(text, selectionStart, selectionEnd) {
+    const openRegex = /\[size=(\d+)pt\]/g;
+    const allOpenMatches = Array.from(text.matchAll(openRegex));
+    if (!allOpenMatches.length) {
+      return null;
+    }
+
+    const lastOpen = allOpenMatches.reverse().find((match) => match.index < selectionEnd);
+    if (!lastOpen) {
+      return null;
+    }
+
+    const afterSelection = text.slice(selectionStart);
+    const closeMatch = afterSelection.match(/\[\/size\]/);
+    if (!closeMatch) {
+      return null;
+    }
+
+    return {
+      openIndex: lastOpen.index,
+      openLength: lastOpen[0].length,
+      currentSize: parseInt(lastOpen[1], 10),
+      closeIndex: selectionStart + closeMatch.index,
+      closeLength: closeMatch[0].length,
+    };
+  }
+
   function applySize(textarea, delta) {
+    const textValue = textarea.value;
     const start = textarea.selectionStart ?? 0;
     const end = textarea.selectionEnd ?? start;
-    const selectedText = textarea.value.substring(start, end);
-    const before = textarea.value.substring(0, start);
-    const after = textarea.value.substring(end);
-    const nextSize = delta > 0 ? 10 : 9;
+    const wrapper = findNearestSizeWrapper(textValue, start, end);
+
+    if (wrapper) {
+      const newSize = Math.max(1, wrapper.currentSize + delta);
+      const newOpenTag = `[size=${newSize}pt]`;
+      const oldOpenTag = textValue.substr(wrapper.openIndex, wrapper.openLength);
+      textarea.value =
+        textValue.slice(0, wrapper.openIndex) +
+        newOpenTag +
+        textValue.slice(wrapper.openIndex + wrapper.openLength);
+
+      const lengthDelta = newOpenTag.length - wrapper.openLength;
+      textarea.focus();
+      textarea.setSelectionRange(start + lengthDelta, end + lengthDelta);
+      emitInput(textarea);
+      return;
+    }
+
+    const selectedText = textValue.substring(start, end);
+    const nextSize = delta > 0 ? 11 : 9;
     const tagOpen = `[size=${nextSize}pt]`;
     const tagClose = "[/size]";
-    const replacement = selectedText.startsWith("[size=")
-      ? selectedText.replace(/\[size=(\d+)pt\]/, (match, size) => `[size=${parseInt(size, 10) + delta}pt]`)
-      : `${tagOpen}${selectedText}${tagClose}`;
+    const before = textValue.substring(0, start);
+    const after = textValue.substring(end);
+    const replacement = `${tagOpen}${selectedText}${tagClose}`;
 
     textarea.value = before + replacement + after;
     const cursorStart = before.length + tagOpen.length;
@@ -227,9 +277,14 @@
     return true;
   });
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setDefaultMerits);
-  } else {
+  function initializePageSpecificBehavior() {
     setDefaultMerits();
+    applyTargetPageStyles();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializePageSpecificBehavior);
+  } else {
+    initializePageSpecificBehavior();
   }
 })();
