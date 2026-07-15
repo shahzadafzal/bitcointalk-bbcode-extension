@@ -4,6 +4,35 @@
     ? window.BBCodeUndoUtils.createUndoManager(20)
     : null;
 
+  const debounceMap = new Map();
+  const lastSavedState = new Map();
+  const DEBOUNCE_DELAY = 300;
+
+  function debounceInputSave(textarea) {
+    if (!undoManager || !textarea) return;
+
+    // Clear existing timeout for this textarea
+    if (debounceMap.has(textarea)) {
+      clearTimeout(debounceMap.get(textarea));
+    }
+
+    // Set new timeout
+    const timeoutId = setTimeout(() => {
+      // Only save if content actually changed
+      const currentState = textarea.value;
+      const lastState = lastSavedState.get(textarea);
+      
+      if (lastState !== currentState) {
+        saveUndoState(textarea);
+        lastSavedState.set(textarea, currentState);
+      }
+      
+      debounceMap.delete(textarea);
+    }, DEBOUNCE_DELAY);
+
+    debounceMap.set(textarea, timeoutId);
+  }
+
   function setDefaultMerits() {
     if (!window.location.href.includes("action=merit")) return;
 
@@ -65,6 +94,7 @@
   function saveUndoState(textarea) {
     if (undoManager && textarea) {
       undoManager.push(textarea);
+      lastSavedState.set(textarea, textarea.value);
     }
   }
 
@@ -157,7 +187,7 @@
     const textarea = getTargetTextarea();
     if (!textarea) return false;
 
-    if (action !== "undo") {
+    if (action !== "undo" && action !== "redo") {
       saveUndoState(textarea);
     }
 
@@ -177,6 +207,13 @@
       case "undo":
         if (undoManager) {
           undoManager.undo(textarea);
+          textarea.focus();
+          emitInput(textarea);
+        }
+        break;
+      case "redo":
+        if (undoManager) {
+          undoManager.redo(textarea);
           textarea.focus();
           emitInput(textarea);
         }
@@ -230,9 +267,26 @@
     if (event.altKey) return;
 
     if (event.key.toLowerCase() === "z") {
+      if (event.shiftKey) {
+        // Ctrl+Shift+Z for redo
+        event.preventDefault();
+        event.stopPropagation();
+        performAction("redo");
+        return;
+      } else {
+        // Ctrl+Z for undo
+        event.preventDefault();
+        event.stopPropagation();
+        performAction("undo");
+        return;
+      }
+    }
+
+    if (event.key.toLowerCase() === "y") {
+      // Ctrl+Y for redo (alternative)
       event.preventDefault();
       event.stopPropagation();
-      performAction("undo");
+      performAction("redo");
       return;
     }
 
@@ -266,6 +320,14 @@
   }
 
   document.addEventListener("keydown", handleShortcut, true);
+  
+  // Track typing changes with debounce to capture text input for undo/redo
+  document.addEventListener("input", function (event) {
+    if (isRelevantTextarea(event.target)) {
+      debounceInputSave(event.target);
+    }
+  }, true);
+
   ensureBuiltInToolbarPatch(0);
 
   chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {

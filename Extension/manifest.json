@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Bitcointalk BBCode Extension",
-  "version": "5.1",
+  "version": "5.2",
   "description": "Automatically adds related [BBCode] tags with Keyboard shortcuts in Bitcointalk forum.",
   "permissions": [
     "activeTab",

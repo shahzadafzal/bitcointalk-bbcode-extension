@@ -1,19 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8" />
   <title>Bitcointalk BBCode Extension</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; width: 340px; margin: 12px; }
+    h1 { font-size: 16px; margin: 0 0 8px 0; }
+    p { margin: 6px 0; font-size: 13px; }
+    ul { padding-left: 18px; margin: 6px 0; }
+    li { margin: 6px 0; font-size: 13px; }
+    .note { font-size:12px; color:#555; margin-top:8px; }
+    a { color: #1a73e8; text-decoration: none; }
+  </style>
 </head>
 <body>
-  <h3>Bitcointalk BBCode Extension</h1>
-  <ul style="
-    padding-left: 10px;
-    width: 250px;
-">
-	  <li>To make text bold press Ctrl + B.</li>
-	  <li>To make text italic press Ctrl + I.</li>
-	  <li>To increase the font size Ctrl + Up.</li>
-	  <li>To decrease the font size Ctrl + Down.</li>
-	  <li>To undo the last BBCode change press Ctrl + Z.</li>
+  <h1>Bitcointalk BBCode Extension</h1>
+  <p>Quick reference for keyboard shortcuts and behavior.</p>
+  <ul>
+    <li><strong>Ctrl+B</strong> — Bold selected text</li>
+    <li><strong>Ctrl+I</strong> — Italic</li>
+    <li><strong>Ctrl+Up</strong> / <strong>Ctrl+Down</strong> — Increase / decrease size</li>
+    <li><strong>Ctrl+Z</strong> — Undo (step-by-step)</li>
+    <li><strong>Ctrl+Y</strong> or <strong>Ctrl+Shift+Z</strong> — Redo</li>
   </ul>
+  <p class="note">Undo now tracks typing (saved after a short pause) and BBCode actions. Only changed content is saved; repeated Ctrl+Z will step back through actual changes. If Ctrl+Y is intercepted by your browser, use Ctrl+Shift+Z as an alternative.</p>
+  <p class="note">Post titles on the unread/watchlist pages are styled bold automatically by the extension.</p>
+  <p style="margin-top:10px;"><a href="privacy.html" target="_blank">Privacy</a></p>
 </body>
 </html>
